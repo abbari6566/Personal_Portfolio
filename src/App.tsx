@@ -1059,8 +1059,6 @@ function GoalsLevel() {
               <span className="k">Focus</span>
               <span className="v">SWE - AI/ML</span>
             </div>
-          </div>
-          <div className="status-card glass reveal d3">
             <div className="status-row">
               <span className="k">Email</span>
               <span className="v">abrar.cs.401@gmail.com</span>

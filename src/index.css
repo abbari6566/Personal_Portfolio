@@ -1330,6 +1330,11 @@ main {
   gap: 1rem;
 }
 
+.goal-side .status-card {
+  flex: 1;
+  justify-content: center;
+}
+
 .status-card {
   display: flex;
   flex-direction: column;
