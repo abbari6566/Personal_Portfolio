@@ -18,7 +18,7 @@
   --ink-faint: #5f827d;
   --serif: "Playfair Display", Georgia, serif;
   --sans: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
-  --maxw: 1180px;
+  --maxw: 1480px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --motion: 1;
   color-scheme: dark;
@@ -595,10 +595,11 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: min(100%, var(--maxw));
   max-width: var(--maxw);
   min-height: 100vh;
   margin: 0 auto;
-  padding: clamp(5rem, 12vh, 9rem) clamp(1.2rem, 5vw, 3rem);
+  padding: clamp(5rem, 10vh, 8rem) clamp(1rem, 3.6vw, 3.5rem);
 }
 
 .level-head {
@@ -688,14 +689,14 @@ main {
 .about-grid {
   display: grid;
   align-items: center;
-  grid-template-columns: minmax(240px, 0.64fr) 1.36fr;
+  grid-template-columns: minmax(240px, 0.58fr) minmax(0, 1.42fr);
   gap: clamp(1.4rem, 4vw, 3rem);
 }
 
 .avatar-card {
   position: relative;
   overflow: hidden;
-  width: min(100%, 275px);
+  width: min(100%, 290px);
   padding: 0.78rem;
 }
 
@@ -973,7 +974,7 @@ main {
 
 .proj-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
   gap: 1.1rem;
 }
 
@@ -1120,7 +1121,7 @@ main {
 
 .skill-tree {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 1.1rem;
 }
 
@@ -1202,7 +1203,7 @@ main {
 .goal-wrap {
   display: grid;
   align-items: stretch;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: minmax(0, 1.28fr) minmax(360px, 0.72fr);
   gap: clamp(1.4rem, 4vw, 3rem);
 }
 
@@ -1211,7 +1212,7 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   padding: clamp(1.6rem, 4vw, 2.6rem);
 }
 
@@ -1251,7 +1252,7 @@ main {
 
 .goal-roles {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1.6rem;
 }
@@ -1280,7 +1281,8 @@ main {
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  width: 176px;
+  width: min(100%, 208px);
+  min-width: 208px;
   padding: 0.85rem 1.5rem;
   border: 1px solid transparent;
   border-radius: 11px;
@@ -1288,6 +1290,7 @@ main {
   font-size: 0.84rem;
   font-weight: 600;
   letter-spacing: 0.04em;
+  white-space: nowrap;
   transition: 0.25s var(--ease);
 }
 
@@ -1418,6 +1421,18 @@ footer {
   }
 }
 
+@media (max-width: 640px) {
+  .status-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .status-row .v {
+    text-align: left;
+  }
+}
+
 @media (max-width: 520px) {
   .hud {
     padding-right: 1rem;
@@ -1442,15 +1457,6 @@ footer {
     letter-spacing: 0.18em;
   }
 
-  .status-row {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .status-row .v {
-    text-align: left;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
