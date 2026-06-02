@@ -2,6 +2,10 @@
 
 Personal portfolio for Abrar Bari, built with React, TypeScript, and Vite.
 
+# Demo link, deployed using Vercel
+
+https://personal-portfolio-eight-chi-54.vercel.app/
+
 ## Tech Stack
 
 - React 18
