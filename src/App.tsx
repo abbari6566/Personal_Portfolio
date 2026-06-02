@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const resumePdf = "/Abrar_Bari_Resume.pdf";
-const portraitImage = "/cyberpunk_portrait.jpg";
+const portraitImage = "/portrait.jpg";
 
 const levels = [
   { id: "level-1", number: "01", label: "About" },
@@ -12,6 +12,23 @@ const levels = [
 ];
 
 const accentRgb = "106,228,235";
+const githubUsername = "abbari6566";
+const contributionsRefreshMs = 60 * 60 * 1000;
+
+interface ContributionDay {
+  date: string;
+  count: number;
+  level: 0 | 1 | 2 | 3 | 4;
+}
+
+interface ContributionResponse {
+  total: Record<string, number>;
+  contributions: ContributionDay[];
+}
+
+interface CalendarDay extends ContributionDay {
+  isPadding: boolean;
+}
 
 const githubPath =
   "M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 .1.8 1.6 2.7 1.2.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.4-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.6 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z";
@@ -115,6 +132,79 @@ function FolderIcon() {
       <path d="M14 7l-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
     </svg>
   );
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function shiftDate(date: Date, days: number) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+function buildContributionWeeks(contributions: ContributionDay[]) {
+  if (contributions.length === 0) return [];
+
+  const sorted = [...contributions].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
+  const byDate = new Map(sorted.map((day) => [day.date, day]));
+  const firstDate = new Date(`${sorted[0].date}T00:00:00Z`);
+  const lastDate = new Date(`${sorted[sorted.length - 1].date}T00:00:00Z`);
+  const start = shiftDate(firstDate, -firstDate.getUTCDay());
+  const end = shiftDate(lastDate, 6 - lastDate.getUTCDay());
+  const weeks: CalendarDay[][] = [];
+
+  for (let cursor = start; cursor <= end; cursor = shiftDate(cursor, 7)) {
+    const week = Array.from({ length: 7 }, (_, dayIndex) => {
+      const current = shiftDate(cursor, dayIndex);
+      const key = dateKey(current);
+      const contribution = byDate.get(key);
+      return {
+        date: key,
+        count: contribution?.count ?? 0,
+        level: contribution?.level ?? 0,
+        isPadding: !contribution,
+      };
+    });
+
+    weeks.push(week);
+  }
+
+  return weeks.slice(-53);
+}
+
+function getMonthLabels(weeks: CalendarDay[][]) {
+  let previousMonth = -1;
+
+  return weeks.map((week) => {
+    const firstRealDay = week.find((day) => !day.isPadding);
+    if (!firstRealDay) return "";
+
+    const date = new Date(`${firstRealDay.date}T00:00:00Z`);
+    const month = date.getUTCMonth();
+    if (month === previousMonth) return "";
+
+    previousMonth = month;
+    return date.toLocaleString("en", { month: "short", timeZone: "UTC" });
+  });
+}
+
+function formatContributionDate(value: string) {
+  return new Date(`${value}T00:00:00Z`).toLocaleDateString("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function getContributionsUrl(year: number) {
+  const currentYear = new Date().getFullYear();
+  const range = year === currentYear ? "last" : String(year);
+  return `https://github-contributions-api.jogruber.de/v4/${githubUsername}?y=${range}`;
 }
 
 function useMissionConsole() {
@@ -380,6 +470,9 @@ export default function App() {
           </button>
           <div className="intro-hint">Click or press Enter to begin</div>
         </div>
+        <div className="intro-footer">
+          A gamified version of my personal portfolio
+        </div>
       </div>
 
       <div id="topbar" style={{ width: `${state.progress * 100}%` }} />
@@ -392,6 +485,10 @@ export default function App() {
           <div className="hud-name">
             Abrar Bari
             <small>Software Engineer</small>
+          </div>
+          <div className="hud-status" aria-label="Open to Work">
+            <span className="pip" />
+            Open to Work
           </div>
         </a>
         <div className="hud-meta">
@@ -466,6 +563,8 @@ export default function App() {
         <ProjectsLevel />
         <SkillsLevel />
         <GoalsLevel />
+        <GitHubActivity />
+        <BottomCta />
       </main>
 
       <footer>ABRAR BARI</footer>
@@ -516,33 +615,45 @@ function AboutLevel() {
             <span className="avatar-corner c-tr" />
             <span className="avatar-corner c-bl" />
             <span className="avatar-corner c-br" />
-            <img src={portraitImage} alt="Cyberpunk portrait of Abrar Bari" />
+            <img src={portraitImage} alt="Portrait of Abrar Bari" />
           </div>
-          <p className="avatar-note">The above image is AI generated</p>
           <div className="avatar-badge">
             <span className="lvl">Abrar Bari</span>
-            <span className="role">CS - AI Track</span>
           </div>
         </div>
 
         <div className="about-body">
           <p className="about-lead reveal d1">
-            A <b>Computer Science graduate</b> from Texas Tech University
-            building across <b>full-stack engineering</b> and <b>applied AI</b>,
-            shipping production systems and training models that actually leave
-            the notebook.
+            Hi there, I am <b>Abrar</b>, a <b>Computer Science graduate</b> from
+            Texas Tech University with a <b>4.00 GPA</b>, a Mathematics minor,
+            and an AI concentration. I build full-stack applications and applied
+            AI systems that are practical, scalable, and profitable.
           </p>
           <p className="about-text reveal d2">
-            From RAG platforms and ML fairness pipelines to medical-imaging
-            CNNs, I like problems where careful engineering and research meet. I
-            graduated in <b>May 2026</b> with a <b>perfect 4.00 GPA</b>, a
-            Mathematics minor, and an Artificial Intelligence concentration.
+            My work includes RAG platforms, backend systems, ML fairness
+            pipelines, and computer vision research. I have built projects like{" "}
+            <b>PaperPilot</b>, <b>InterviewCraft</b>, and{" "}
+            <b>ManageMySubscription</b>, and I was selected as an AI Fellow
+            through <b>Break Through Tech x Meta AI</b>.
           </p>
-          <p className="about-text reveal d3 compact">
-            Texas Tech University - <b>B.S. in Computer Science</b>, Minor in
-            Mathematics, Concentration in Artificial Intelligence - Lubbock, TX.
+          <p className="about-text reveal d3">
+            I do not have years of corporate history yet. What I do have is a
+            GitHub full of real projects, strong fundamentals, and the hunger to
+            keep building from scratch. I am actively looking for a new grad
+            Software Engineering role where I can learn fast, contribute from
+            day one, and work with people who care about shipping good products.
           </p>
         </div>
+      </div>
+
+      <div className="hire-reason glass reveal d4">
+        <h3>You should hire me because...</h3>
+        <p>
+          I care about the craft, not just the commit. I will show up curious,
+          build with intent, and grow into more than you hired me for. I make
+          sure I think past the feature to the outcome - what actually makes the
+          product, and the business, better.
+        </p>
       </div>
     </section>
   );
@@ -1006,6 +1117,213 @@ function SkillsLevel() {
   );
 }
 
+function GitHubActivity() {
+  const currentYear = new Date().getFullYear();
+  const availableYears = [currentYear, currentYear - 1, currentYear - 2];
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [weeks, setWeeks] = useState<CalendarDay[][]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [lastUpdated, setLastUpdated] = useState("");
+  const monthLabels = getMonthLabels(weeks);
+  const isCurrentRange = selectedYear === currentYear;
+  const titleRange = isCurrentRange ? "in the last year" : `in ${selectedYear}`;
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadContributions = async () => {
+      try {
+        setIsLoading(true);
+        setError("");
+        const response = await fetch(getContributionsUrl(selectedYear), {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`GitHub responded with ${response.status}`);
+        }
+
+        const data = (await response.json()) as ContributionResponse;
+        const contributions = data.contributions ?? [];
+        setWeeks(buildContributionWeeks(contributions));
+        setTotal(
+          (isCurrentRange
+            ? data.total.lastYear
+            : data.total[String(selectedYear)]) ??
+            contributions.reduce((sum, day) => sum + day.count, 0),
+        );
+        setLastUpdated(
+          new Date().toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+        );
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setError("GitHub activity is temporarily unavailable.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadContributions();
+    const interval = window.setInterval(
+      loadContributions,
+      contributionsRefreshMs,
+    );
+
+    return () => {
+      controller.abort();
+      window.clearInterval(interval);
+    };
+  }, [isCurrentRange, selectedYear]);
+
+  return (
+    <section
+      className="github-activity"
+      aria-labelledby="github-activity-title"
+    >
+      <div className="github-shell glass reveal d1">
+        <div className="github-head">
+          <div>
+            <div className="level-tag github-tag">
+              <span className="bar" /> Live Sync
+            </div>
+            <h2 className="github-title" id="github-activity-title">
+              {total.toLocaleString()} contributions {titleRange}
+            </h2>
+          </div>
+          <a
+            className="github-profile"
+            href={`https://github.com/${githubUsername}`}
+            target="_blank"
+            rel="noopener"
+          >
+            <GithubIcon />@{githubUsername}
+          </a>
+        </div>
+
+        {isLoading ? (
+          <div className="github-empty">Fetching contribution graph...</div>
+        ) : error ? (
+          <div className="github-empty">{error}</div>
+        ) : (
+          <>
+            <div className="contrib-panel">
+              <div className="contrib-main">
+                <div className="contrib-months" aria-hidden="true">
+                  {monthLabels.map((month, index) => (
+                    <span key={`${month}-${index}`}>{month}</span>
+                  ))}
+                </div>
+                <div className="contrib-grid-wrap">
+                  <div className="contrib-days" aria-hidden="true">
+                    <span />
+                    <span>Mon</span>
+                    <span />
+                    <span>Wed</span>
+                    <span />
+                    <span>Fri</span>
+                    <span />
+                  </div>
+                  <div
+                    className="contrib-grid"
+                    aria-label={`${total.toLocaleString()} GitHub contributions in the last year`}
+                  >
+                    {weeks.map((week, weekIndex) => (
+                      <div className="contrib-week" key={week[0].date}>
+                        {week.map((day) => (
+                          <a
+                            className="contrib-cell"
+                            data-level={day.level}
+                            data-padding={day.isPadding ? "true" : undefined}
+                            href={`https://github.com/${githubUsername}?tab=overview&from=${day.date}&to=${day.date}`}
+                            target="_blank"
+                            rel="noopener"
+                            title={`${day.count} contribution${day.count === 1 ? "" : "s"} on ${formatContributionDate(day.date)}`}
+                            aria-label={`${day.count} contribution${day.count === 1 ? "" : "s"} on ${formatContributionDate(day.date)}`}
+                            key={`${weekIndex}-${day.date}`}
+                          />
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="contrib-years" aria-label="Contribution year">
+                {availableYears.map((year) => (
+                  <button
+                    className={year === selectedYear ? "active" : undefined}
+                    type="button"
+                    onClick={() => setSelectedYear(year)}
+                    key={year}
+                  >
+                    {year}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="github-foot">
+              <a
+                href="https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-settings-on-your-profile"
+                target="_blank"
+                rel="noopener"
+              >
+                Learn how GitHub counts contributions
+              </a>
+              <span className="contrib-legend">
+                Less
+                {[0, 1, 2, 3, 4].map((level) => (
+                  <span
+                    className="contrib-cell legend-cell"
+                    data-level={level}
+                    key={level}
+                  />
+                ))}
+                More
+              </span>
+              <span>Auto-refreshes hourly</span>
+              {lastUpdated && <span>Last checked {lastUpdated}</span>}
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function BottomCta() {
+  return (
+    <div className="goal-cta bottom-cta reveal d2">
+      <a className="btn btn-primary" href="mailto:abrar.cs.401@gmail.com">
+        <EmailIcon />
+        Hire me!
+      </a>
+      <a
+        className="btn btn-ghost"
+        href={resumePdf}
+        download="Abrar_Bari_Resume.pdf"
+      >
+        <DownloadIcon />
+        Resume
+      </a>
+      <a
+        className="btn btn-ghost"
+        href="https://www.linkedin.com/in/abrar-bari"
+        target="_blank"
+        rel="noopener"
+      >
+        <LinkedinIcon />
+        Connect
+      </a>
+    </div>
+  );
+}
+
 function GoalsLevel() {
   return (
     <section className="level" id="level-5">
@@ -1023,13 +1341,13 @@ function GoalsLevel() {
             Now Accepting the Challenge
           </div>
           <h3 className="goal-h">
-            Seeking <span className="accent">SWE & AI</span> roles for 2026.
+            Seeking <span className="accent">SWE & AI</span> roles.
           </h3>
           <p className="goal-p">
             Graduated in May 2026 and ready to join a team building things that
-            ship. I'm looking for new-grad Software Engineering and AI
-            positions where I can keep working across the full stack and the
-            model lifecycle, and grow fast alongside strong engineers.
+            ship. I'm looking for new-grad Software Engineering and AI positions
+            where I can keep working across the full stack and the model
+            lifecycle, and grow fast alongside strong engineers.
           </p>
           <div className="goal-roles">
             <span className="role-chip">Software Engineer</span>
@@ -1069,30 +1387,6 @@ function GoalsLevel() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="goal-cta reveal d4">
-        <a className="btn btn-primary" href="mailto:abrar.cs.401@gmail.com">
-          <EmailIcon />
-          Get in touch
-        </a>
-        <a
-          className="btn btn-ghost"
-          href={resumePdf}
-          download="Abrar_Bari_Resume.pdf"
-        >
-          <DownloadIcon />
-          Resume
-        </a>
-        <a
-          className="btn btn-ghost"
-          href="https://www.linkedin.com/in/abrar-bari"
-          target="_blank"
-          rel="noopener"
-        >
-          <LinkedinIcon />
-          Connect
-        </a>
       </div>
     </section>
   );
