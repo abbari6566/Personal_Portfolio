@@ -1062,10 +1062,6 @@ function GoalsLevel() {
           </div>
           <div className="status-card glass reveal d3">
             <div className="status-row">
-              <span className="k">Phone</span>
-              <span className="v">+1 806-507-4237</span>
-            </div>
-            <div className="status-row">
               <span className="k">Email</span>
               <span className="v">abrar.cs.401@gmail.com</span>
             </div>
