@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const resumePdf = "/Abrar_Bari_Resume.pdf";
+const resumePdf = "/Abrar_Resume.pdf";
 const portraitImage = "/portrait.jpg";
 
 const levels = [
@@ -496,7 +496,7 @@ export default function App() {
             <a
               className="resume-link"
               href={resumePdf}
-              download="Abrar_Bari_Resume.pdf"
+              download="Abrar_Resume.pdf"
               aria-label="Download resume"
               title="Download resume"
             >
@@ -1306,7 +1306,7 @@ function BottomCta() {
       <a
         className="btn btn-ghost"
         href={resumePdf}
-        download="Abrar_Bari_Resume.pdf"
+        download="Abrar_Resume.pdf"
       >
         <DownloadIcon />
         Resume
