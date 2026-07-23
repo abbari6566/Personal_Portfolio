@@ -1,21 +1,21 @@
 :root {
-  --teal: #6ae4eb;
-  --teal-bright: #a9f8fb;
-  --teal-deep: #1aa8b3;
-  --teal-rgb: 106, 228, 235;
+  --teal: #ababab;
+  --teal-bright: #cfcfcf;
+  --teal-deep: #5c5c5c;
+  --teal-rgb: 171, 171, 171;
   --amber: #fab84d;
   --amber-bright: #ffd37a;
   --amber-rgb: 250, 184, 77;
-  --bg-0: #050b0b;
-  --bg-1: #07110f;
-  --bg-2: #0a1614;
-  --glass: rgba(13, 32, 30, 0.42);
-  --glass-strong: rgba(11, 28, 26, 0.66);
+  --bg-0: #030303;
+  --bg-1: #050505;
+  --bg-2: #0a0a0a;
+  --glass: rgba(10, 10, 10, 0.45);
+  --glass-strong: rgba(6, 6, 6, 0.7);
   --glass-line: rgba(var(--teal-rgb), 0.16);
   --glass-line-2: rgba(var(--teal-rgb), 0.32);
-  --ink: #e7fbf7;
-  --ink-dim: #9fc3bd;
-  --ink-faint: #5f827d;
+  --ink: #eeeeee;
+  --ink-dim: #a8a8a8;
+  --ink-faint: #6b6b6b;
   --serif: "Playfair Display", Georgia, serif;
   --sans: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
   --maxw: 1480px;
@@ -99,7 +99,7 @@ button {
       rgba(var(--teal-rgb), 0.07),
       transparent 55%
     ),
-    linear-gradient(180deg, var(--bg-1), var(--bg-0) 60%, #04100e);
+    linear-gradient(180deg, var(--bg-1), var(--bg-0) 60%, #020202);
 }
 
 #particles {
@@ -168,7 +168,7 @@ button {
   display: grid;
   place-items: center;
   padding: 1.2rem;
-  background: radial-gradient(circle at 50% 45%, #08201d, #040b0a 70%);
+  background: radial-gradient(circle at 50% 45%, #0a0a0a, #020202 70%);
   transition:
     opacity 0.8s var(--ease),
     visibility 0.8s;
@@ -763,7 +763,7 @@ main {
       rgba(var(--teal-rgb), 0.07) 0 14px,
       transparent 14px 28px
     ),
-    linear-gradient(160deg, #0c211e, #07120f);
+    linear-gradient(160deg, #141414, #060606);
 }
 
 .avatar-frame .ph {
